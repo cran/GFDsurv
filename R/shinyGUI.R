@@ -12,7 +12,6 @@
 #' @import shiny
 #' @import utils
 #' @importFrom shinyjs useShinyjs hide hidden show
-#' @importFrom shinyWidgets sliderTextInput
 #' @importFrom tippy tippy_this
 #' @importFrom shinythemes shinytheme
 #'
@@ -23,10 +22,6 @@ GFDsurvGUI <- function() {
 
   if (!("package:shiny" %in% search())) {
     attachNamespace("shiny")
-  }
-  requireNamespace("shinyWidgets", quietly = TRUE)
-  if (!("package:shinyWidgets" %in% search())) {
-    attachNamespace("shinyWidgets")
   }
   requireNamespace("tippy", quietly = TRUE)
 
@@ -78,8 +73,8 @@ GFDsurvGUI <- function() {
                         shinyjs::hidden(
                           selectInput("Method", "Select Testing Method:",
                                       c("CASANOVA: Cumulative Aalen survival analyis-of-variance" = "casanova",
-                                        "MedSANOVA: Median survival analyis-of-variance"= "medSANOVA",
-                                        "CopSANOVA: Concordance probability survival analyis-of-variance"="copSANOVA"))
+                                        "MEDSANOVA: Median survival analyis-of-variance"= "medSANOVA",
+                                        "COPSANOVA: Concordance probability survival analyis-of-variance"="copSANOVA"))
                         ),
 
                           splitLayout(cellWidths = c("40%","40%"),
@@ -159,7 +154,7 @@ GFDsurvGUI <- function() {
 
                           splitLayout(cellWidths = c("20%","10%","20%","10%","30%"),
                                       shinyjs::hidden(
-                          shinyWidgets::sliderTextInput(
+                                        selectInput(
                               inputId = "sliderBoot",
                               label = "Bootstrap type:",
                               choices = c("wild","weird"),
