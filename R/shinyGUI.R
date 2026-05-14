@@ -73,7 +73,7 @@ GFDsurvGUI <- function() {
                         shinyjs::hidden(
                           selectInput("Method", "Select Testing Method:",
                                       c("CASANOVA: Cumulative Aalen survival analyis-of-variance" = "casanova",
-                                        "MEDSANOVA: Median survival analyis-of-variance"= "medSANOVA",
+                                        "MEDSANOVA: Median survival analysis-of-variance"= "medSANOVA",
                                         "COPSANOVA: Concordance probability survival analyis-of-variance"="copSANOVA"))
                         ),
 

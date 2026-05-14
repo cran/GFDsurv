@@ -1,0 +1,2 @@
+We added the arguments nonex_action, which specifies how to handle non-existing medians for permutation samples, and seed, which sets a seed for reproducibility, in the function medsanova.
+Moreover, the function now also provides the medians as output.

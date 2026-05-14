@@ -223,7 +223,7 @@ test_stat <- function(values, t_mat, var_out) {
 # values:   matrix. The data to start with
 # group:    integer vector containing the group of the observations. Default is
 #           the third column of the values, the groups drawn by data_gen
-wrap_sim2 <- function(values, group = values[, 3], t_mat_list, var_method, var_level){
+wrap_sim2 <- function(values, group = values[, 3], t_mat_list, var_method, var_level, nonex_action = NULL){
 
   C_mat <- function(x){
     t(x) %*% MASS::ginv( x %*% t(x) ) %*% x
@@ -262,7 +262,7 @@ wrap_sim2 <- function(values, group = values[, 3], t_mat_list, var_method, var_l
 # Vector with the quantiles of the test-statistics and number of permutations
 #
 
-perm_fun <- function(values, nperm, t_mat_list , var_method, var_level = var_level) {
+perm_fun <- function(values, nperm, t_mat_list , var_method, var_level = var_level, nonex_action) {
 
   C_mat <- function(x){
     t(x) %*% MASS::ginv( x %*% t(x) ) %*% x
@@ -274,8 +274,55 @@ perm_fun <- function(values, nperm, t_mat_list , var_method, var_level = var_lev
   group_org <- values2[, 3]
   group_new <- replicate(nperm, sample(group_org))
   test_stat_erg <- apply(group_new, 2,
-                         function(x) wrap_sim2(values = values2, group = x,
-                                              t_mat_list = t_mat_list, var_method = var_method, var_level = var_level) )
+                                       function(x) try(wrap_sim2(values = values2, group = x,
+                                                             t_mat_list = t_mat_list, 
+                                                             var_method = var_method, 
+                                                             var_level = var_level),
+                                                       silent = TRUE) )
+  if(any(sapply(test_stat_erg, is.character))){
+  test_stat_erg <- sapply(test_stat_erg, function(listentry){
+    if(is.character(listentry)){ rep(NA,length(t_mat_list)) }else{listentry}
+  })
+  # now, redraw or set Infinity
+  if(nonex_action == "setInf"){
+    if(is.matrix(test_stat_erg)){
+      num_redraw <- sum(apply(test_stat_erg,2,anyNA))
+    }else{
+      num_redraw <- sum(is.na(test_stat_erg))
+    }
+    warning(paste("In", num_redraw, "out of", nperm, "permutation samples, the median could not be estimated in at least one group. Here, the permutation statistics were set to Inf to obtain a conservative decision."))
+    test_stat_erg[is.na(test_stat_erg)] <- Inf
+  }else{
+  if(nonex_action == "redraw"){
+    counter <- 0
+    while(anyNA(test_stat_erg)){
+      # count redraws
+      if(is.matrix(test_stat_erg)){
+        num_redraw <- sum(apply(test_stat_erg,2,anyNA))
+      }else{
+        num_redraw <- sum(is.na(test_stat_erg))
+      }
+      counter <- counter + num_redraw
+      group_new <- replicate(num_redraw, sample(group_org))
+      test_stat_erg_new  <- apply(group_new, 2,
+                                                    function(x) try(wrap_sim2(values = values2, group = x,
+                                                                              t_mat_list = t_mat_list, 
+                                                                              var_method = var_method, 
+                                                                              var_level = var_level),
+                                                                    silent = TRUE) )
+      if(any(sapply(test_stat_erg_new, is.character))){
+        test_stat_erg_new <- sapply(test_stat_erg_new, function(listentry){
+          if(is.character(listentry)){ rep(NA,length(t_mat_list)) }else{listentry}
+        })
+      }
+      test_stat_erg[is.na(test_stat_erg)] <- test_stat_erg_new
+    }
+    warning(paste("In total,",counter, "permutation samples were redrawn due to non-existing medians in at least one group. Permutation p-values may not be exact."))
+  }else{
+    stop("Median does not exist for at least one permutation sample. Use nonex_action = \"setInf\" or \"redraw\" to avoid this error.")
+  }
+  }
+  }
    if(length(t_mat_list)==1){
      test_stat_erg <- t(test_stat_erg)
      rownames(test_stat_erg) <- "int_1"
@@ -283,5 +330,6 @@ perm_fun <- function(values, nperm, t_mat_list , var_method, var_level = var_lev
 
 
   return(list(test_stat_erg = test_stat_erg ) )
+  
 }
 

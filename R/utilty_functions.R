@@ -116,6 +116,9 @@ plot.casanova <- function (x, direction = "horizontal", by.group = FALSE, nr.gro
 print.medsanova<- function(x, ...) {
   cat("Call:", "\n")
   print(x$input$formula)
+  
+  #cat("\n", "Median survival times:","\n","\n", sep = "")
+  #print(x$medians)
 
   cat("\n", "medSANOVA: Median survival analyis-of-variance:","\n","\n", sep = "")
   print(x$statistic)

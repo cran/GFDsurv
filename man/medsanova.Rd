@@ -2,16 +2,18 @@
 % Please edit documentation in R/medsanova.R
 \name{medsanova}
 \alias{medsanova}
-\title{medSANOVA: Median survival analyis-of-variance}
+\title{medSANOVA: Median survival analysis-of-variance}
 \usage{
 medsanova(
   formula,
   event = "event",
   data = NULL,
   nperm = 1999,
+  nonex_action = "setInf",
   var_method = "twosided",
   var_level = 0.9,
-  nested.levels.unique = FALSE
+  nested.levels.unique = FALSE,
+  seed = 1
 )
 }
 \arguments{
@@ -21,7 +23,7 @@ specified.}
 
 \item{event}{The name of the censoring status indicator with values 0=censored and
 1=uncensored.
-The default choice is "event"}
+The default choice is \code{"event"}.}
 
 \item{data}{A data.frame, list or environment containing the variables in formula
 and the censoring status
@@ -30,17 +32,24 @@ indicator. Default option is \code{NULL}.}
 \item{nperm}{The number of permutations used for calculating the permuted p-value.
 The default option is 1999.}
 
+\item{nonex_action}{One of the options \code{"redraw"} and \code{"setInf"}, 
+which specifies how permutation samples with non-existing medians should be 
+handled, see details. The default option is \code{"setInf"}.}
+
 \item{var_method}{Method for the variance estimation of the sample medians. The default
 is the "one-sided" confidence interval approach. Additionally, the "two-sided" confidence
 interval approach can be used.}
 
 \item{var_level}{A number between 0 and 1 specifying the confidence level for the
-variance estimation method; the default value is 0.9.}
+variance estimation method; the default value is \code{0.9}.}
 
 \item{nested.levels.unique}{A logical specifying whether the levels of the nested
 factor(s) are labeled uniquely or not.
- Default is FALSE, i.e., the levels of the nested factor are the same for each
+ Default is \code{FALSE}, i.e., the levels of the nested factor are the same for each
  level of the main factor.}
+
+\item{seed}{A single value, interpreted as an integer, or \code{NULL}; used for the 
+seed to guarantee reproducibility. The default value is \code{1}.}
 }
 \value{
 An  \code{medsanova} object containing the following components:
@@ -51,6 +60,7 @@ An  \code{medsanova} object containing the following components:
  respective p-value, as well as the p-value of the
   permutation procedure.}
  \item{nperm}{The number of permutations used for calculating the permuted p-value.}
+ \item{medians}{The calculated survival medians in all subgroups.}
 }
 \description{
 The function \code{medsanova} calculates the Wald-type test statistic for
@@ -59,13 +69,18 @@ Respective p-values are obtain by a \eqn{\chi^2}-approximation and a permutation
 }
 \details{
 The \code{medsanova} function calculates the Wald-type statistic for median differences
-in general factorial survival designs. Crossed as well as hierachically nested designs are
+in general factorial survival designs. Crossed as well as hierarchically nested designs are
 implemented. To estimate the sample medians' variances, a one-sided (resp. two-sided) confidence
 interval approach is used and the level of this confidence interval can be specified by \code{var_level}.
 
   The \code{medsanova} function returns the test statistic as well as two
   corresponding p-values: the first is based on a \eqn{\chi^2} approximation and
   the second one is based on a permutation procedure.
+  
+  For the argument \code{nonex_action}, \code{"redraw"} means that a new permutation 
+  is drawn instead while \code{"setInf"} means that the permutation statistic is set 
+  to \code{Inf}. The first option might lead to an incorrect type-I error 
+  even under exchangeability while the latter yields conservative test decisions.
 }
 \examples{
 \donttest{
@@ -76,6 +91,8 @@ out <- medsanova(formula ="time ~ trt*celltype",event = "status",
 
 ## Detailed informations:
 summary(out)
+## show the medians
+out$medians
 }
 }
 \references{
