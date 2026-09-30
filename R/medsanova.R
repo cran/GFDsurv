@@ -39,12 +39,17 @@
 #'   corresponding p-values: the first is based on a \eqn{\chi^2} approximation and
 #'   the second one is based on a permutation procedure.
 #'   
+#'    In the two-sample case, the \code{medsanova} function also provides the estimate for the
+#'    difference between the medians, (asymptotic 
+#'    and permutation based) 95\% confidence intervals for the difference as well as the standard error SE 
+#'    of the median difference.
+#'   
 #'   For the argument \code{nonex_action}, \code{"redraw"} means that a new permutation 
 #'   is drawn instead while \code{"setInf"} means that the permutation statistic is set 
 #'   to \code{Inf}. The first option might lead to an incorrect type-I error 
 #'   even under exchangeability while the latter yields conservative test decisions.
 #'   
-#' @return An  \code{medsanova} object containing the following components:
+#' @return An  \code{medsanova} object contains the following components:
 #'  \item{pvalues_stat}{The p-values obtained by \eqn{\chi^2}-approximation}
 #'  \item{pvalues_per}{The p-values of the permutation approach}
 #'  \item{statistics}{The value of the Wald-type test statistic along with the
@@ -90,25 +95,27 @@ medsanova <-  function(formula, event ="event", data = NULL, nperm = 1999, nonex
   #n
   subject <- 1:nrow(dat)
   n_all <- length(subject)
-
+  
   formula <- as.formula(formula)
   nf <- ncol(dat) - 1 - 1
   nadat <- names(dat)
-
+  
+  twosample <- FALSE
+  
   if(anyNA(data[,nadat])){
     stop("Data contains NAs!")
   }
-
+  
   if(var_method == "twosided"){var_method = 2}
   if(var_method == "onesided"){var_method = 3}
-
+  
   names(dat) <- c("Var",nadat[2:(1+nf)],"event")
-
+  
   dat2 <- data.frame(dat, subject = subject)
-
+  
   nadat2 <- nadat[-c(1,nf+2)]
-
-
+  
+  
   fl <- NA
   for (aa in 1:nf) {
     fl[aa] <- nlevels(as.factor(dat[, aa + 1]))
@@ -128,41 +135,62 @@ medsanova <-  function(formula, event ="event", data = NULL, nperm = 1999, nonex
     hypo_matrices <- list(diag(fl) - matrix(1/fl, ncol = fl, nrow = fl))
     group <- rep(1:length(n),n)
     dat2$group <- group
-
+    
     ###############################
     dat2  <- dat2[order(dat2$Var),]
     event <- dat2[,"event"]
     group <- dat2$group
-
+    
     dat3 <- dat2[,c("Var","event","group")]
-
-
+    
+    
     erg_stat <-  wrap_sim2(dat3,group = dat3[,3],hypo_matrices,
                            var_method = var_method, var_level = var_level)
     out <- list()
-
+    
     erg_perm <- perm_fun(dat3, nperm, hypo_matrices,
                          var_method = var_method, var_level = var_level, nonex_action = nonex_action)
-
+    
+    if(length(hypo_matrices) == 1 & identical(hypo_matrices[[1]],matrix(c(0.5,-0.5,-0.5,0.5),ncol=2))){
+      twosample <- TRUE
+    }
+    
     for(j in 1:length(hypo_matrices)){
       q_perm <- erg_perm$test_stat_erg
       t_int_perm <- mean(erg_stat[paste0("int_", j)] <= q_perm[paste0("int_", j), ], na.rm = TRUE)
       t_int_chi <- 1-pchisq(erg_stat[paste0("int_", j)], df = qr(hypo_matrices[[j]])$rank )
-
+      
       t_int_perm <- ifelse(is.nan(t_int_perm), NA, t_int_perm)
-
+      
       out1 <- c("perm" = t_int_perm, "chi" = t_int_chi)
+      
+      if(twosample){
+        t_mat_list <- list(hypo_matrices[[1]])
+        
+        values <- sort_data(dat3)
+        values[, 3] <- group
+        values_KME <- KME(values, group = values[, 3])
+        
+        var_int <- int_var_groups(values_KME,var_level = var_level, group = values[ ,3], var_method = var_method)
+        
+        est <- t(c(1,-1))%*%var_int$Median
+        SE <- sqrt(sum(var_int$Variance))/sqrt(nrow(values))
+        perm_quan <- sqrt(quantile(q_perm, prob = 0.95))
+        chi_quan <- qnorm(0.975)
+        out2 <- c("Estimate" = est, "Std. Error" = SE, "perm_lower" = est - SE*perm_quan, "perm_upper" = est + SE*perm_quan, 
+                  "chi_lower" = est - SE*chi_quan, "chi_upper" = est + SE*chi_quan)
+      }
       out[[j]] <- out1
     }
-
+    
     out <- matrix(unlist(out),length(hypo_matrices),byrow=T)
-
+    
     df <- unlist(lapply(hypo_matrices, function(x) qr(x)$rank))
-
+    
   }
   else {
     lev_names <- lev_names[do.call(order, lev_names[, 1:nf]),
-                           ]
+    ]
     dat2 <- dat2[do.call(order, dat2[, 2:(nf + 1)]), ]
     response <- dat2[, 1]
     nr_hypo <- attr(terms(formula), "factors")
@@ -232,64 +260,70 @@ medsanova <-  function(formula, event ="event", data = NULL, nperm = 1999, nonex
     if (0 %in% n || 1 %in% n) {
       stop("There is at least one factor-level combination\n           with less than 2 observations!")
     }
-
+    
     ###############################
     dat2  <- dat2[order(dat2$Var),]
     event <- dat2[,"event"]
     group <- dat2$group
-
+    
     dat3 <- dat2[,c("Var","event","group")]
-
-
+    
+    
     erg_stat <-  wrap_sim2(dat3,group = dat3[,3],hypo_matrices,
                            var_method = var_method, var_level = var_level)
     out <- list()
-
+    
     erg_perm <- perm_fun(dat3, nperm, hypo_matrices,
                          var_method = var_method, var_level = var_level, nonex_action = nonex_action)
-
+    
     for(j in 1:length(hypo_matrices)){
       q_perm <- erg_perm$test_stat_erg
       t_int_perm <- mean(erg_stat[paste0("int_", j)] <= q_perm[paste0("int_", j), ], na.rm = TRUE)
       t_int_chi <- 1-pchisq(erg_stat[paste0("int_", j)], df = qr(hypo_matrices[[j]])$rank )
-
+      
       t_int_perm <- ifelse(is.nan(t_int_perm), NA, t_int_perm)
-
+      
       out1 <- c("perm" = t_int_perm, "chi" = t_int_chi)
       out[[j]] <- out1
     }
-
+    
     out <- matrix(unlist(out),length(hypo_matrices),byrow=T)
-
+    
     df <- unlist(lapply(hypo_matrices, function(x) qr(x)$rank))
-
+    
   }
-
-
-   output <- list()
-   output$input <- input_list
-   output$nperm <-nperm
-   output$plotting <- list("dat" = dat,"nadat2" = nadat2)
-
-
-   output$statistic <- cbind(erg_stat,df,round(out[,2],3),round(out[,1],3))
-   rownames(output$statistic) <- fac_names
-   colnames(output$statistic) <- c("Test statistic","df","p-value", "p-value perm")
-   
-   # output the medians
-   df <- cbind(dat2, group_med = KME(dat3, group = dat3[, 3])[,5])
-   df_u <- unique(df[, c(2:(nf + 1), which(names(df) == "group_med"))])
-   nm <- apply(df_u[, 1:nf,drop=FALSE], 1, function(row) {
-     paste0(
-       names(df_u)[1:nf],
-       ": ",
-       row,
-       collapse = "; "
-     )
-   })
-   output$medians <- setNames(df_u$group_med, nm)[order(nm)]
-
-   class(output) <- "medsanova"
-   return(output)
-
+  
+  
+  output <- list()
+  output$input <- input_list
+  output$nperm <-nperm
+  output$plotting <- list("dat" = dat,"nadat2" = nadat2)
+  
+  
+  output$statistic <- cbind(erg_stat,df,round(out[,2],3),round(out[,1],3))
+  rownames(output$statistic) <- fac_names
+  colnames(output$statistic) <- c("Test statistic","df","p-value", "p-value perm")
+  
+  if(twosample){
+    output$difference <- round(out2[c(1,2,5,6,3,4)],3)
+    names(output$difference) <- c("Diff. estimate","Std. Error","lower 95%","upper 95%",
+                                    "perm lower 95%","perm upper 95%")
+    
+  }
+  # output the medians
+  df <- cbind(dat2, group_med = KME(dat3, group = dat3[, 3])[,5])
+  df_u <- unique(df[, c(2:(nf + 1), which(names(df) == "group_med"))])
+  nm <- apply(df_u[, 1:nf,drop=FALSE], 1, function(row) {
+    paste0(
+      names(df_u)[1:nf],
+      ": ",
+      row,
+      collapse = "; "
+    )
+  })
+  output$medians <- setNames(df_u$group_med, nm)[order(nm)]
+  
+  class(output) <- "medsanova"
+  return(output)
+  
 }

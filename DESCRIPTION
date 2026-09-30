@@ -1,7 +1,7 @@
 Package: GFDsurv
 Type: Package
 Title: Tests for Survival Data in General Factorial Designs
-Version: 0.1.2
+Version: 0.1.3
 Authors@R: 
   c(person(given = "Marc",
            family = "Ditzhaus",
@@ -17,7 +17,7 @@ Authors@R:
            role = "aut"),
     person(given = "Merle",
            family = "Munko",
-           role = c("aut","cre"), email = "merle.munko@ovgu.de"))
+           role = c("aut","cre"), email = "mmunko@novaims.unl.pt"))
 URL: https://github.com/MerleMunko/GFDsurv
 Description: Implemented are three Wald-type statistic and respective
   permuted versions for null hypotheses formulated in terms of cumulative hazard rate functions, medians and the concordance measure, respectively, in the general framework of survival factorial designs with possibly heterogeneous survival and/or censoring distributions, for crossed designs with an arbitrary number of factors and nested designs with up to three factors.
@@ -32,13 +32,13 @@ Imports: gridExtra (>= 2.3), shiny (>= 1.5.0), shinyjs (>= 2.0.0),
 Encoding: UTF-8
 Suggests: condSURV
 NeedsCompilation: no
-Packaged: 2026-05-13 13:25:59 UTC; munko
+Packaged: 2026-09-29 14:25:05 UTC; munko
 Author: Marc Ditzhaus [aut],
   Dennis Dobler [aut],
   Markus Pauly [aut],
   Philipp Steinhauer [aut],
   Merle Munko [aut, cre]
-Maintainer: Merle Munko <merle.munko@ovgu.de>
+Maintainer: Merle Munko <mmunko@novaims.unl.pt>
 Repository: CRAN
-Date/Publication: 2026-05-14 14:20:30 UTC
+Date/Publication: 2026-09-30 17:50:02 UTC
 Config/roxygen2/version: 8.0.0

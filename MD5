@@ -1,6 +1,6 @@
-8db59e85f947da18fe0168d89029581b *DESCRIPTION
+7a5b167f26904234735eb9faec019ba6 *DESCRIPTION
 5f2caafcec645c878205842c403f77ee *NAMESPACE
-a837c2620e620812fc6b067420be5db2 *NEWS
+9be613524261baf64d331efd73790731 *NEWS
 0c7b8064259b745fc6702c8d0ab303f1 *R/casanova.R
 6f3a00196113377acbb664bfdb0f5bee *R/casanova_stat.R
 50ebc9d554f16e440aab550e64f712d8 *R/copsanova.R
@@ -8,11 +8,11 @@ a837c2620e620812fc6b067420be5db2 *NEWS
 00742b206506c61f2f66ab2229eef9e7 *R/copsanova_tau.R
 62df2517fc4dcfae0524ada1b150718e *R/func_coeff_check.R
 8ebd441c54b0aa9536091b9475e87985 *R/matrix_function.R
-5cddb5bb87bb82bff514094a968f8a13 *R/medsanova.R
+9b93c04c0f8b0bd43ab1ed9c9e96e671 *R/medsanova.R
 2e1a7bab491cbc8b62ff84ba1188cab0 *R/medsanova_stat.R
 172f8c9521e87af8be34c3dd4d8b511e *R/shinyGUI.R
 aa4d7e11dbeb3c6e99acfa0056be1b6a *R/utilty_functions.R
 f7642c2a5c88bf5f5f82cf94b67cefdd *man/GFDsurvGUI.Rd
 72aeab9696b14973b0e9633a88d24e13 *man/casanova.Rd
 7133854b26cdea9619e543ae79605595 *man/copsanova.Rd
-26cabf1d289f89f59bd3ca0313568ef9 *man/medsanova.Rd
+6f3f8795855d8b9ade0b28785524abaf *man/medsanova.Rd
